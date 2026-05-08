@@ -4,38 +4,51 @@ on:
   push:
     branches:
       - main
+
   pull_request:
     branches:
       - main
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build-and-test:
-    name: Build and Test
+    name: Build and Test on iPhone 17
     runs-on: macos-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Show Xcode version
+      - name: Show Xcode Version
         run: xcodebuild -version
 
-      - name: Cache SwiftPM dependencies
+      - name: Cache SwiftPM
         uses: actions/cache@v4
         with:
           path: |
             ~/Library/Caches/org.swift.swiftpm
             ~/Library/Developer/Xcode/DerivedData
-            .build
           key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
           restore-keys: |
             ${{ runner.os }}-spm-
 
-      - name: Resolve package dependencies
-        run: swift package resolve
+      - name: Resolve Package Dependencies
+        run: xcodebuild -resolvePackageDependencies
 
-      - name: Build
-        run: swift build -v
+      - name: Build Package (iPhone 17)
+        run: |
+          xcodebuild \
+            -scheme ServiceKit \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            build \
+            CODE_SIGNING_ALLOWED=NO
 
-      - name: Run tests
-        run: swift test -v
+      - name: Run Tests (iPhone 17)
+        run: |
+          xcodebuild \
+            -scheme ServiceKit \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            test \
+            CODE_SIGNING_ALLOWED=NO
