@@ -8,37 +8,63 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  DERIVED_DATA: ~/Library/Developer/Xcode/DerivedData
+  SPM_CACHE: ~/Library/Caches/org.swift.swiftpm
+  SPM_CLONE_DIR: ~/Library/Caches/org.swift.swiftpm/SourcePackages
 
 jobs:
   build-and-test:
     name: Build and Test on iPhone 17
     runs-on: macos-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Show Xcode Version
         run: xcodebuild -version
 
-      - name: Cache SwiftPM
+      - name: Cache SwiftPM + DerivedData
         uses: actions/cache@v4
         with:
           path: |
-            ~/Library/Caches/org.swift.swiftpm
-            ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+            ${{ env.SPM_CACHE }}
+            ${{ env.DERIVED_DATA }}
+          key: ${{ runner.os }}-spm-dd-${{ hashFiles('**/Package.resolved', '**/*.xcodeproj/project.pbxproj', '**/*.xcworkspace/contents.xcworkspacedata') }}
           restore-keys: |
+            ${{ runner.os }}-spm-dd-
             ${{ runner.os }}-spm-
 
       - name: Resolve Package Dependencies
-        run: xcodebuild -resolvePackageDependencies -scheme ServiceKit
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -scheme ServiceKit \
+            -clonedSourcePackagesDirPath "$SPM_CLONE_DIR" \
+            -skipPackagePluginValidation
 
-      - name: Build and Test (iPhone 17)
+      - name: Build for Testing (iPhone 17)
         run: |
           xcodebuild \
             -scheme ServiceKit \
             -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
-            -derivedDataPath ~/Library/Developer/Xcode/DerivedData \
-            test \
+            -derivedDataPath "$DERIVED_DATA" \
+            -clonedSourcePackagesDirPath "$SPM_CLONE_DIR" \
+            -skipPackagePluginValidation \
+            -resultBundlePath TestResults \
+            build-for-testing \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Test without Building (iPhone 17)
+        run: |
+          xcodebuild \
+            -scheme ServiceKit \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            -derivedDataPath "$DERIVED_DATA" \
+            -clonedSourcePackagesDirPath "$SPM_CLONE_DIR" \
+            -skipPackagePluginValidation \
+            -resultBundlePath TestResults \
+            test-without-building \
             CODE_SIGNING_ALLOWED=NO
