@@ -12,13 +12,13 @@ public typealias GenericResponse<T> = AFDataResponse<T>
 
 public protocol ProviderType: AnyObject {
     associatedtype TargetType: Target
-    func request<T: Decodable>(_ target: TargetType) async throws -> T
+    func request<T: Decodable & Sendable>(_ target: TargetType) async throws -> T
 }
 
 public class Provider<TargetType: Target>: ProviderType {
     public init() { }
 
-    public func request<T: Decodable>(_ target: TargetType) async throws -> T {
+    public func request<T: Decodable & Sendable>(_ target: TargetType) async throws -> T {
 
         // Convert target to `URLRequest`
         var request = try target.toEndPoint()
