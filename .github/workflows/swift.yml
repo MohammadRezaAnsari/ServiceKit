@@ -53,18 +53,28 @@ jobs:
             -derivedDataPath "$DERIVED_DATA" \
             -clonedSourcePackagesDirPath "$SPM_CLONE_DIR" \
             -skipPackagePluginValidation \
-            -resultBundlePath TestResults \
+            -resultBundlePath "TestResults-build" \
             build-for-testing \
             CODE_SIGNING_ALLOWED=NO
 
       - name: Test without Building (iPhone 17)
         run: |
+          rm -rf TestResults-test
           xcodebuild \
             -scheme ServiceKit \
             -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
             -derivedDataPath "$DERIVED_DATA" \
             -clonedSourcePackagesDirPath "$SPM_CLONE_DIR" \
             -skipPackagePluginValidation \
-            -resultBundlePath TestResults \
+            -resultBundlePath "TestResults-test" \
             test-without-building \
             CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TestResults
+          path: |
+            TestResults-build
+            TestResults-test
