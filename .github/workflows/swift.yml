@@ -2,12 +2,9 @@ name: Swift Package
 
 on:
   push:
-    branches:
-      - main
-
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -35,20 +32,13 @@ jobs:
             ${{ runner.os }}-spm-
 
       - name: Resolve Package Dependencies
-        run: xcodebuild -resolvePackageDependencies
+        run: xcodebuild -resolvePackageDependencies -scheme ServiceKit
 
-      - name: Build Package (iPhone 17)
+      - name: Build and Test (iPhone 17)
         run: |
           xcodebuild \
             -scheme ServiceKit \
             -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
-            build \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Run Tests (iPhone 17)
-        run: |
-          xcodebuild \
-            -scheme ServiceKit \
-            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            -derivedDataPath ~/Library/Developer/Xcode/DerivedData \
             test \
             CODE_SIGNING_ALLOWED=NO
