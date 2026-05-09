@@ -12,7 +12,7 @@ import Foundation
 public class GeneralProvider {
     public init() { }
 
-    public func request<T: Decodable>(_ request: URLRequest) async throws -> GenericResponse<T> {
+    public func request<T: Decodable & Sendable>(_ request: URLRequest) async throws -> GenericResponse<T> {
         try await withUnsafeThrowingContinuation { continuation in
 
             // Send Request and decode it with defined decodable type
