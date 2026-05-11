@@ -8,13 +8,13 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  DERIVED_DATA: ~/Library/Developer/Xcode/DerivedData
-  SPM_CACHE: ~/Library/Caches/org.swift.swiftpm
-  SPM_CLONE_DIR: ~/Library/Caches/org.swift.swiftpm/SourcePackages
+  DERIVED_DATA: ${{ github.workspace }}/DerivedData
+  SPM_CACHE: ${{ github.workspace }}/.spm-cache
+  SPM_CLONE_DIR: ${{ github.workspace }}/.spm-cache/SourcePackages
 
 jobs:
   build-and-test:
-    name: Build and Test on iPhone 17
+    name: Build and Test on iPhone 16
     runs-on: macos-15
     timeout-minutes: 20
 
@@ -25,7 +25,7 @@ jobs:
           fetch-depth: 1
 
       - name: Select Xcode 16.4
-        run: sudo xcode-select -s /Applications/Xcode_16.4.app
+        run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
 
       - name: Show Xcode Version
         run: xcodebuild -version
@@ -51,11 +51,11 @@ jobs:
             -clonedSourcePackagesDirPath "$SPM_CLONE_DIR" \
             -skipPackagePluginValidation
 
-      - name: Build for Testing (iPhone 17)
+      - name: Build for Testing (iPhone 16)
         run: |
           xcodebuild \
             -scheme ServiceKit \
-            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -derivedDataPath "$DERIVED_DATA" \
             -clonedSourcePackagesDirPath "$SPM_CLONE_DIR" \
             -skipPackagePluginValidation \
@@ -63,12 +63,12 @@ jobs:
             build-for-testing \
             CODE_SIGNING_ALLOWED=NO
 
-      - name: Test without Building (iPhone 17)
+      - name: Test without Building (iPhone 16)
         run: |
           rm -rf TestResults-test
           xcodebuild \
             -scheme ServiceKit \
-            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -derivedDataPath "$DERIVED_DATA" \
             -clonedSourcePackagesDirPath "$SPM_CLONE_DIR" \
             -skipPackagePluginValidation \
