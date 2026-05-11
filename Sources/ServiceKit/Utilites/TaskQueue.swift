@@ -40,7 +40,7 @@ public actor TaskQueue {
         }
     }
 
-    public func enqueue<T>(operation: @escaping @Sendable () async throws -> T) async throws -> T {
+    public func enqueue<T: Sendable>(operation: @escaping @Sendable () async throws -> T) async throws -> T {
         try Task.checkCancellation()
 
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
